@@ -10,12 +10,19 @@ SERVIDOR = socket.gethostbyname(socket.gethostname())
 DESCONECTAR = '!sair'
 ENDERECO = (SERVIDOR, PORTA)
 
+# Define um cliente como um socket, a familia AF_INET indica que a familia de
+# endereco utilizada sera do formato (host, porta), compativel apenas com o IPv4
+#
+# O tipo de socket utilizado sera o SOCK_STREAM, que e um tipo para propositos gerais
 cliente = socket.socket(
     family=socket.AF_INET,
     type=socket.SOCK_STREAM
 )
 
 def conectar():
+    """
+    Funcao que faz a conexao do cliente com o servidor
+    """
     nome_usuario = str(input(Fore.CYAN + '[CLIENTE]:' + Fore.WHITE + ' Informe o seu nome de usuário: '))
 
     cliente.connect(ENDERECO)
@@ -32,6 +39,13 @@ def conectar():
     conectado()
 
 def enviar_mensagem(conteudo):
+    """
+    Envia uma mensagem para o servidor.
+
+    Parametros
+    ----------
+        `conteudo`: string contendo a mensagem a ser enviada para o servidor
+    """
     mensagem = conteudo.encode(FORMATO)
 
     tamanho_mensagem = len(mensagem)
@@ -42,6 +56,9 @@ def enviar_mensagem(conteudo):
     cliente.send(mensagem)
 
 def conectado():
+    """
+    Funcao que lida com acoes do cliente enquanto estiver conectado ao servidor
+    """
     sair = False
 
     while not sair:

@@ -29,8 +29,8 @@ def receptor_cliente(conexao, endereco):
 
     Parametros
     ----------
-        :conexao: 
-        :endereco: 
+        :conexao: instancia de um socket capaz de enviar e receber dados na conexao
+        :endereco: endereco ligado ao socket no outro fim da conexao
     """
     print(Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + f' Nova conexão, {endereco} se conectou.')
 
@@ -63,6 +63,9 @@ def receptor_cliente(conexao, endereco):
     print(Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + f' {nome_usuario} desconectou-se.')
 
 def iniciar():
+    """
+    Inicia um servidor para escutar no endereco definido no socket
+    """
     print(Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + ' Iniciando...')
     servidor.listen()
 
@@ -70,6 +73,8 @@ def iniciar():
 
     while True:
         conexao, endereco = servidor.accept()
+        
+        # Cada conexao de clientes no servidor sera tratada concorrentemente com uma thread
         thread = threading.Thread(
             target=receptor_cliente,
             args=(conexao, endereco)
