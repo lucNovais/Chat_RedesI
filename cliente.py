@@ -1,5 +1,7 @@
 # Biblioteca utilizada para implementar o cliente/servidor
 import socket
+import threading
+import os
 
 from colorama import Fore
 
@@ -19,6 +21,8 @@ cliente = socket.socket(
     type=socket.SOCK_STREAM
 )
 
+mensagens = []
+
 def conectar():
     """
     Funcao que faz a conexao do cliente com o servidor
@@ -35,7 +39,7 @@ def conectar():
     cliente.send(tamanho_nome_enviado)
     cliente.send(nome_usuario)
 
-    print(cliente.recv(HEADER).decode(FORMATO))
+    mensagens.append(cliente.recv(HEADER).decode(FORMATO))
     conectado()
 
 def enviar_mensagem(conteudo):
@@ -55,14 +59,37 @@ def enviar_mensagem(conteudo):
     cliente.send(tamanho_enviada)
     cliente.send(mensagem)
 
+def receber_mensagem():
+    global mensagens
+
+    while True:
+        mensagem = cliente.recv(HEADER).decode(FORMATO)
+
+        if mensagem:
+            mensagens.append(mensagem)
+            imprime_mensagens()
+
+def imprime_mensagens():
+    os.system('clear')
+
+    for mensagem in mensagens:
+        print(mensagem)
+    print("\nDigite uma mensagem: ")
+
 def conectado():
     """
     Funcao que lida com acoes do cliente enquanto estiver conectado ao servidor
     """
     sair = False
 
+    imprime_mensagens()
+
+    thread = threading.Thread(
+        target=receber_mensagem
+    )
+
     while not sair:
-        mensagem = str(input("\nDigite uma mensagem: "))
+        mensagem = str(input(""))
 
         if mensagem == '!sair':
             print('Saindo...')
@@ -70,6 +97,10 @@ def conectado():
         else:
             enviar_mensagem(mensagem)
 
+        if not thread.is_alive():
+            thread.start()
+
     enviar_mensagem(DESCONECTAR)
+    return
 
 conectar()
