@@ -21,6 +21,8 @@ servidor = socket.socket(
     type=socket.SOCK_STREAM
 )
 
+clientes_conectados = []
+
 servidor.bind(ENDERECO)
 
 def receptor_cliente(conexao, endereco):
@@ -41,6 +43,7 @@ def receptor_cliente(conexao, endereco):
 
     conectado = True
     conexao.send((Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + f" Olá {nome_usuario}!" + BEMVINDO).encode(FORMATO))
+    clientes_conectados.append((conexao, endereco))
 
     while conectado:
         tamanho_mensagem = conexao.recv(HEADER).decode(FORMATO)
@@ -51,7 +54,9 @@ def receptor_cliente(conexao, endereco):
             continue
 
         mensagem = conexao.recv(tamanho_mensagem).decode(FORMATO)
-        conexao.send((f'[{nome_usuario}]:' + mensagem).encode(FORMATO))
+
+        for cliente in clientes_conectados:
+            cliente[0].send((Fore.CYAN + f'[{nome_usuario}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
 
         print(Fore.CYAN + f'\t[{nome_usuario}]:' + Fore.WHITE + f' {mensagem}')
 
@@ -81,6 +86,7 @@ def iniciar():
         )
         thread.start()
 
+        # Imprime o numero de conexoes ativas, subtraindo 1 para desconsiderar a thread principal
         print(Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + f' {threading.active_count() - 1} conexões ativas.')
 
 iniciar()
