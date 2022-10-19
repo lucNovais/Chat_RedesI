@@ -8,7 +8,6 @@ from constantes import *
 
 # Define um cliente como um socket, a familia AF_INET indica que a familia de
 # endereco utilizada sera do formato (host, porta), compativel apenas com o IPv4
-#
 # O tipo de socket utilizado sera o SOCK_STREAM, que e um tipo para propositos gerais
 cliente = socket.socket(
     family=socket.AF_INET,
@@ -37,6 +36,8 @@ def conectar():
     mensagens.append(cliente.recv(HEADER).decode(FORMATO))
 
     conectado()
+
+    exit(0)
 
 def enviar_mensagem(conteudo):
     """
@@ -97,7 +98,6 @@ def conectado():
             thread.start()
 
     enviar_mensagem(DESCONECTAR)
-
     return
 
 conectar()
