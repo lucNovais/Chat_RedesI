@@ -4,13 +4,7 @@ import threading
 import os
 
 from colorama import Fore
-
-HEADER = 64
-FORMATO = 'utf-8'
-PORTA = 2000
-SERVIDOR = socket.gethostbyname(socket.gethostname())
-DESCONECTAR = '!sair'
-ENDERECO = (SERVIDOR, PORTA)
+from constantes import *
 
 # Define um cliente como um socket, a familia AF_INET indica que a familia de
 # endereco utilizada sera do formato (host, porta), compativel apenas com o IPv4
@@ -40,6 +34,8 @@ def conectar():
     cliente.send(nome_usuario)
 
     mensagens.append(cliente.recv(HEADER).decode(FORMATO))
+    mensagens.append(cliente.recv(HEADER).decode(FORMATO))
+
     conectado()
 
 def enviar_mensagem(conteudo):
@@ -101,6 +97,7 @@ def conectado():
             thread.start()
 
     enviar_mensagem(DESCONECTAR)
+
     return
 
 conectar()

@@ -5,16 +5,7 @@ import threading
 
 # Utilizado para mudar a cor das mensagens trocadas no terminal
 from colorama import Fore
-
-# Constantes utilizadas
-PORTA = 2000
-SERVIDOR = socket.gethostbyname(socket.gethostname())
-ENDERECO = (SERVIDOR, PORTA)
-HEADER = 64
-FORMATO = 'utf-8'
-DESCONECTAR = '!sair'
-BEMVINDO = ' Bem vindo ao nosso servidor :)'
-# ---------------------------------------------------- #
+from constantes import *
 
 servidor = socket.socket(
     family=socket.AF_INET,
@@ -42,7 +33,10 @@ def receptor_cliente(conexao, endereco):
     nome_usuario = conexao.recv(tamanho_nome_usuario).decode(FORMATO)
 
     conectado = True
+
     conexao.send((Fore.GREEN + '[SERVIDOR]:' + Fore.WHITE + f" Olá {nome_usuario}!" + BEMVINDO).encode(FORMATO))
+    conexao.send((Fore.YELLOW + MENU2 + Fore.WHITE).encode(FORMATO))
+
     clientes_conectados.append((conexao, endereco))
 
     while conectado:
