@@ -13,7 +13,7 @@ servidor = socket.socket(
     type=socket.SOCK_STREAM
 )
 
-clientes_conectados = []
+clientes_geral = []
 
 servidor.bind(ENDERECO)
 
@@ -39,7 +39,7 @@ def receptor_cliente(conexao, endereco):
     conexao.send((MSG_SERVIDOR + f" Olá {nome_usuario}!" + BEMVINDO).encode(FORMATO))
     conexao.send((Fore.YELLOW + MENU2 + Fore.WHITE).encode(FORMATO))
 
-    clientes_conectados.append((conexao, endereco, nome_usuario))
+    clientes_geral.append((conexao, endereco, nome_usuario))
 
     while conectado:
         tamanho_mensagem = conexao.recv(HEADER).decode(FORMATO)
@@ -52,7 +52,7 @@ def receptor_cliente(conexao, endereco):
         mensagem = conexao.recv(tamanho_mensagem).decode(FORMATO)
 
         if not conexao_privada:
-            for cliente in clientes_conectados:
+            for cliente in clientes_geral:
                 cliente[0].send((Fore.CYAN + f'[{nome_usuario}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
         else:
             conexao.send((Fore.CYAN + f'[{nome_usuario}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
@@ -65,9 +65,12 @@ def receptor_cliente(conexao, endereco):
 
         if mensagem == PRIVADO and not conexao_privada:
             conexao_privada = True
-            conexao.send((MSG_SERVIDOR + ' Voce entrou no chat' + Style.BRIGHT + ' privado' + Style.NORMAL + ', usuarios conectados:\n').encode(FORMATO))
+            clientes_geral.remove((conexao, endereco, nome_usuario))
 
-            for cliente in clientes_conectados:
+            conexao.send(('!disp=' + str(len(clientes_geral))).encode(FORMATO))
+            conexao.send(('\n' + MSG_SERVIDOR + ' Voce entrou no chat' + Style.BRIGHT + ' privado' + Style.NORMAL + ', usuarios conectados:\n').encode(FORMATO))
+
+            for cliente in clientes_geral:
                 conexao.send((Fore.GREEN + '\n\t1.' + Fore.WHITE + f' {cliente[2]}').encode(FORMATO))
 
             conexao.send(('\n\n' + Fore.YELLOW + MENU3 + Fore.WHITE).encode(FORMATO))

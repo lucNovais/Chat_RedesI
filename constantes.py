@@ -15,6 +15,7 @@ BEMVINDO = ' Bem vindo ao chat' + Style.BRIGHT + ' geral ' + Style.NORMAL + 'do 
 MENU1 = '\n\t- Digite !geral para voltar para o chat geral.\n'
 MENU2 = '\n\t- Digite !privado para escolher um chat privado.'
 MENU3 = '\t- Digite um número correspondente a um usuário.\n'
+SAIR = '!sair'
 GERAL = '!geral'
 PRIVADO = '!privado'
 

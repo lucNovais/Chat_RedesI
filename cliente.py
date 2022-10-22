@@ -15,6 +15,7 @@ cliente = socket.socket(
 )
 
 mensagens = []
+clientes_disp = []
 
 def conectar():
     """
@@ -63,6 +64,7 @@ def receber_mensagem():
     a funcao de impressao das mensagens na tela do usuario.
     """
     global mensagens
+    global clientes_disp
 
     while True:
         mensagem = cliente.recv(HEADER).decode(FORMATO)
@@ -99,7 +101,7 @@ def conectado():
     while not sair:
         mensagem = str(input(""))
 
-        if mensagem == '!sair':
+        if mensagem == SAIR:
             print('Saindo...')
             sair = True
         else:
