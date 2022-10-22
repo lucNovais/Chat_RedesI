@@ -57,6 +57,11 @@ def enviar_mensagem(conteudo):
     cliente.send(mensagem)
 
 def receber_mensagem():
+    """
+    Funcao que roda concorrentemente esperando receber uma mensagem do servidor,
+    e caso isso aconteca, insere essa mensagem na lista de mensagens e chama
+    a funcao de impressao das mensagens na tela do usuario.
+    """
     global mensagens
 
     while True:
@@ -67,6 +72,10 @@ def receber_mensagem():
             imprime_mensagens()
 
 def imprime_mensagens():
+    """
+    Funcao que limpa a tela e imprime todas as mensagens armazenadas no buffer
+    de mensagens recebidas do servidor.
+    """
     os.system('clear')
 
     for mensagem in mensagens:
@@ -75,8 +84,10 @@ def imprime_mensagens():
 
 def conectado():
     """
-    Funcao que lida com acoes do cliente enquanto estiver conectado ao servidor
+    Funcao que lida com acoes do cliente enquanto estiver conectado ao servidor.
     """
+    global mensagens
+
     sair = False
 
     imprime_mensagens()
