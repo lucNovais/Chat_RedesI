@@ -15,7 +15,42 @@ cliente = socket.socket(
 )
 
 mensagens = []
-clientes_disp = []
+disp = False
+connect = False
+
+def receber_mensagem():
+    """
+    Funcao que roda concorrentemente esperando receber uma mensagem do servidor,
+    e caso isso aconteca, insere essa mensagem na lista de mensagens e chama
+    a funcao de impressao das mensagens na tela do usuario.
+    """
+    global mensagens
+    global disp
+    global connect
+
+    while True:
+        mensagem = cliente.recv(HEADER).decode(FORMATO)
+
+        if mensagem:
+            if PUXAR in mensagem:
+                print('ENTREI AQUI')
+                mover = mensagem.replace(PUXAR, '')
+                mover = MOVIDO + mover
+                enviar_mensagem(mover)
+
+            mensagens.append(mensagem)
+            imprime_mensagens()
+
+def imprime_mensagens():
+    """
+    Funcao que limpa a tela e imprime todas as mensagens armazenadas no buffer
+    de mensagens recebidas do servidor.
+    """
+    os.system('clear')
+
+    for mensagem in mensagens:
+        print(mensagem)
+    print("\nDigite uma mensagem: ")
 
 def conectar():
     """
@@ -36,9 +71,9 @@ def conectar():
     mensagens.append(cliente.recv(HEADER).decode(FORMATO))
     mensagens.append(cliente.recv(HEADER).decode(FORMATO))
 
-    conectado()
+    imprime_mensagens()
 
-    exit(0)
+    conectado()
 
 def enviar_mensagem(conteudo):
     """
@@ -49,66 +84,32 @@ def enviar_mensagem(conteudo):
         `conteudo`: string contendo a mensagem a ser enviada para o servidor
     """
     mensagem = conteudo.encode(FORMATO)
-
-    tamanho_mensagem = len(mensagem)
-    tamanho_enviada = str(tamanho_mensagem).encode(FORMATO)
-    tamanho_enviada += b' ' * (HEADER - len(tamanho_enviada))
-
-    cliente.send(tamanho_enviada)
     cliente.send(mensagem)
-
-def receber_mensagem():
-    """
-    Funcao que roda concorrentemente esperando receber uma mensagem do servidor,
-    e caso isso aconteca, insere essa mensagem na lista de mensagens e chama
-    a funcao de impressao das mensagens na tela do usuario.
-    """
-    global mensagens
-    global clientes_disp
-
-    while True:
-        mensagem = cliente.recv(HEADER).decode(FORMATO)
-
-        if mensagem:
-            mensagens.append(mensagem)
-            imprime_mensagens()
-
-def imprime_mensagens():
-    """
-    Funcao que limpa a tela e imprime todas as mensagens armazenadas no buffer
-    de mensagens recebidas do servidor.
-    """
-    os.system('clear')
-
-    for mensagem in mensagens:
-        print(mensagem)
-    print("\nDigite uma mensagem: ")
 
 def conectado():
     """
     Funcao que lida com acoes do cliente enquanto estiver conectado ao servidor.
     """
     global mensagens
+    global disp
+    global connect
 
     sair = False
-
-    imprime_mensagens()
 
     thread = threading.Thread(
         target=receber_mensagem
     )
 
+    thread.start()
+
     while not sair:
-        mensagem = str(input(""))
+        mensagem = str(input(''))
 
         if mensagem == SAIR:
             print('Saindo...')
             sair = True
         else:
             enviar_mensagem(mensagem)
-
-        if not thread.is_alive():
-            thread.start()
 
     enviar_mensagem(DESCONECTAR)
     return
