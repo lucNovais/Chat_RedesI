@@ -60,4 +60,4 @@ conexão, ao rodar o módulo `cliente.py` o cliente já é automaticamente inclu
     - Para fazer isso, é necessário enviar a mensagem de controle `!privado`, e logo após
     seguir as instruções que o servidor passar.
     
-**Obs:** É importante que algumas respostas para o servidor sejam feitas utilizando um conjunto as palavras de controle solicitadas, como `!esc=` e `!resp=`. 
+**Obs:** É importante que algumas respostas para o servidor sejam feitas utilizando as palavras de controle solicitadas pelo servidor, como `!esc=` e `!resp=`. 
