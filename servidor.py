@@ -29,10 +29,7 @@ def receptor_cliente_geral(conexao, endereco):
     """
     print(MSG_SERVIDOR + f' Nova conexão, {endereco} se conectou.')
 
-    tamanho_nome_usuario = conexao.recv(HEADER).decode(FORMATO)
-    tamanho_nome_usuario = len(tamanho_nome_usuario)
-
-    nome_usuario = conexao.recv(tamanho_nome_usuario).decode(FORMATO)
+    nome_usuario = conexao.recv(HEADER).decode(FORMATO)
 
     conectado = True
 
@@ -56,18 +53,26 @@ def receptor_cliente_geral(conexao, endereco):
         if mensagem == PRIVADO:
             clientes_geral.remove(usuario)
             clientes_privado.append(usuario)
+
             receptor_cliente_privado(usuario)
+
+            clientes_geral.append(usuario)
+            clientes_privado.remove(usuario)
 
         if MOVIDO in mensagem:
             # Se chegar aqui, significa que esse cliente precisa ser movido para um chat privado
             endereco_origem = mensagem.replace(MOVIDO + ' ', '') # Captura o endereco do usuario que solicitou o chat privado
             clientes_geral.remove(usuario)
+            clientes_privado.append(usuario)
 
             receptor_cliente_privado(
                 usuario=usuario,
                 flag_movido=True,
                 endereco_origem=endereco_origem
             )
+
+            clientes_geral.append(usuario)
+            clientes_privado.remove(usuario)
 
         for cliente in clientes_geral:
             cliente[0].send((Fore.CYAN + f'[{nome_usuario}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
@@ -126,8 +131,18 @@ def receptor_cliente_privado(usuario, flag_movido=False, endereco_origem=None):
             # Se entrar aqui, significa que essa thread remete ao usuario que solicitou a conexao privada
             # logo, a mensagem recebida deve ser enviada para o cliente que se conectou
             cliente_privado[0].send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
+
+            if mensagem == GERAL:
+                conexao_aceita = False
+                cliente_privado[0].send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + 'Voltando ao chat geral...').encode(FORMATO))
+                return
         elif conexao_aceita and flag_movido:
             usuario_origem.send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
+
+            if mensagem == GERAL:
+                conexao_aceita = False
+                usuario_origem.send(('\n' + Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + 'Voltando ao chat geral...').encode(FORMATO))
+                return
         elif ESCOLHA in mensagem:
             # Se o programa entrar aqui, entao uma conexao privada ainda nao foi estabelecida, e o laco esta esperando o
             # cliente que solicitou fazer uma conexao privada escolher um usuario na lista de disponiveis
@@ -148,6 +163,7 @@ def receptor_cliente_privado(usuario, flag_movido=False, endereco_origem=None):
                         cliente_privado[0].send((PUXAR + f' {usuario[1]}').encode(FORMATO))
                     elif resposta == 'N':
                         conexao_aceita = False
+                        return
                 else:
                     cliente_privado[0].send(('\n' + MSG_SERVIDOR + '[!resp=S para ACEITAR / !resp=N para NEGAR]').encode(FORMATO))
                     cliente_privado[0].send((MSG_SERVIDOR + 'Aguardando resposta...').encode(FORMATO))

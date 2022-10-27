@@ -61,11 +61,7 @@ def conectar():
     cliente.connect(ENDERECO)
 
     nome_usuario = nome_usuario.encode(FORMATO)
-
-    tamanho_nome_enviado = str(len(nome_usuario)).encode(FORMATO)
-    tamanho_nome_enviado += b' ' * (HEADER - len(tamanho_nome_enviado))
-
-    cliente.send(tamanho_nome_enviado)
+    
     cliente.send(nome_usuario)
 
     mensagens.append(cliente.recv(HEADER).decode(FORMATO))
