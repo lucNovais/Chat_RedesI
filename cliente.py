@@ -32,8 +32,8 @@ def receber_mensagem():
         mensagem = cliente.recv(HEADER).decode(FORMATO)
 
         if mensagem:
+            # Se receber essa mensagem, significa que uma conexao no chat privado foi estabelecida
             if PUXAR in mensagem:
-                print('ENTREI AQUI')
                 mover = mensagem.replace(PUXAR, '')
                 mover = MOVIDO + mover
                 enviar_mensagem(mover)

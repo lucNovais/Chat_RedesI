@@ -24,8 +24,8 @@ def receptor_cliente_geral(conexao, endereco):
 
     Parametros
     ----------
-        :conexao: instancia de um socket capaz de enviar e receber dados na conexao
-        :endereco: endereco ligado ao socket no outro fim da conexao
+        `conexao`: instancia de um socket capaz de enviar e receber dados na conexao
+        `endereco`: endereco ligado ao socket no outro fim da conexao
     """
     print(MSG_SERVIDOR + f' Nova conexão, {endereco} se conectou.')
 
@@ -59,11 +59,14 @@ def receptor_cliente_geral(conexao, endereco):
             receptor_cliente_privado(usuario)
 
         if MOVIDO in mensagem:
-            nome_origem = mensagem.replace(MOVIDO + ' ', '')
+            # Se chegar aqui, significa que esse cliente precisa ser movido para um chat privado
+            endereco_origem = mensagem.replace(MOVIDO + ' ', '') # Captura o endereco do usuario que solicitou o chat privado
+            clientes_geral.remove(usuario)
+
             receptor_cliente_privado(
                 usuario=usuario,
                 flag_movido=True,
-                nome_origem=nome_origem
+                endereco_origem=endereco_origem
             )
 
         for cliente in clientes_geral:
@@ -74,15 +77,29 @@ def receptor_cliente_geral(conexao, endereco):
     conexao.close()
     print(MSG_SERVIDOR + f' {nome_usuario} desconectou-se.')
 
-def receptor_cliente_privado(usuario, flag_movido=False, nome_origem=None):
+def receptor_cliente_privado(usuario, flag_movido=False, endereco_origem=None):
+    """
+    Lida com os direcionamentos de mensagens quando uma conexao privada de
+    cliente para cliente e solicitada.
+
+    Parametros
+    ----------
+        `usuario`: tupla (conexao, endereco, nome_usuario) que representa o usuario da thread
+        `flag_movido`: flag que indica se essa funcao esta lidando com o cliente que foi solicitado
+                       em uma conexao privada, se nao estiver setada, significa que a funcao esta
+                       lidando com o cliente que quer estabelecer uma conexao privada
+        `endereco_origem`: caso essa funcao esteja rodando em uma thread de um cliente que foi solicitado
+                       de partiripar em um chat privado, entao esse parametro representa o nome
+                       do cliente que fez a solicitacao
+    """
     if not flag_movido:
         usuario[0].send(('\n' + MSG_SERVIDOR + ' Voce entrou no chat' + Style.BRIGHT + ' privado' + Style.NORMAL + ', usuarios conectados:\n').encode(FORMATO))
 
         conexao_aceita = False
 
         if clientes_geral:
-            for cliente in clientes_geral:
-                usuario[0].send((Fore.GREEN + '\n\t1.' + Fore.WHITE + f' {cliente[2]}').encode(FORMATO))
+            for i, cliente in enumerate(clientes_geral):
+                usuario[0].send((Fore.GREEN + f'\n\t{i + 1}.' + Fore.WHITE + f' {cliente[2]}').encode(FORMATO))
         else:
             usuario[0].send(('\n' + MSG_SERVIDOR + ' Nenhum cliente conectado! Voltando ao chat' + Style.BRIGHT + ' geral' + Style.NORMAL + '...').encode(FORMATO))
             clientes_geral.append(usuario)
@@ -90,9 +107,14 @@ def receptor_cliente_privado(usuario, flag_movido=False, nome_origem=None):
         usuario[0].send(('\n\n' + Fore.YELLOW + MENU3 + Fore.WHITE).encode(FORMATO))
         usuario[0].send((Fore.YELLOW + MENU1 + Fore.WHITE).encode(FORMATO))
     else:
-        usuario_origem = [u for u in clientes_privado if u[2] == nome_origem]
-        usuario_origem = usuario_origem[0]
+        # Percorre todos os usuarios conectados a um chat privado e pega aquele
+        # que realizou a solicitacao de conexao para este usuario, pelo nome
 
+        usuario_origem = [c for c in clientes_privado if f"('{c[1][0]}', {c[1][1]})" == endereco_origem]
+        usuario_origem = usuario_origem[0][0]
+
+        # Se entrar nessa condicional, significa que a conexao privada foi aceita pela parte
+        # solicitada, e o direcionamento de mensagens pode ser feito entre o par
         conexao_aceita = True
 
     while True:
@@ -101,10 +123,14 @@ def receptor_cliente_privado(usuario, flag_movido=False, nome_origem=None):
         usuario[0].send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
 
         if conexao_aceita and not flag_movido:
+            # Se entrar aqui, significa que essa thread remete ao usuario que solicitou a conexao privada
+            # logo, a mensagem recebida deve ser enviada para o cliente que se conectou
             cliente_privado[0].send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
         elif conexao_aceita and flag_movido:
-            usuario_origem[0].send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
+            usuario_origem.send((Fore.MAGENTA + f'[{usuario[2]}]: ' + Fore.WHITE + mensagem).encode(FORMATO))
         elif ESCOLHA in mensagem:
+            # Se o programa entrar aqui, entao uma conexao privada ainda nao foi estabelecida, e o laco esta esperando o
+            # cliente que solicitou fazer uma conexao privada escolher um usuario na lista de disponiveis
             resposta = int(mensagem.replace('!esc=', ''))
             cliente_privado = clientes_geral[resposta - 1]
 
@@ -119,13 +145,14 @@ def receptor_cliente_privado(usuario, flag_movido=False, nome_origem=None):
                     resposta = mensagem.replace('!resp=', '')
                     if resposta == 'S':
                         conexao_aceita = True
-                        cliente_privado[0].send((PUXAR + f' {usuario[2]}').encode(FORMATO))
+                        cliente_privado[0].send((PUXAR + f' {usuario[1]}').encode(FORMATO))
                     elif resposta == 'N':
                         conexao_aceita = False
                 else:
                     cliente_privado[0].send(('\n' + MSG_SERVIDOR + '[!resp=S para ACEITAR / !resp=N para NEGAR]').encode(FORMATO))
                     cliente_privado[0].send((MSG_SERVIDOR + 'Aguardando resposta...').encode(FORMATO))
         elif ESCOLHA not in mensagem and not conexao_aceita and not flag_movido:
+            # Garante que o usuario ira escolher corretamente
             usuario[0].send(('\n' + MSG_SERVIDOR + 'Aguardando resposta válida...').encode(FORMATO))
 
 def iniciar():
